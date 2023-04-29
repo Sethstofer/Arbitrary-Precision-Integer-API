@@ -1,0 +1,13 @@
+2
+HEX_STRING
+abcd
+HEX_STRING
+abcd
+DUMP
+SHL
+1 0 4
+DUMP
+SHL
+1 0 16
+DUMP
+END

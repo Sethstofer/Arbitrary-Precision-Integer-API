@@ -1,0 +1,7 @@
+1
+UINT64
+2
+POW
+0 0 4
+DUMP
+END
