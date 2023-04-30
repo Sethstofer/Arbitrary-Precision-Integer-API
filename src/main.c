@@ -12,6 +12,7 @@ void dump(APInt *arr, const size_t size, FILE *stream)
     {
         APIntPrintAsHex(&arr[i], stream);
     }
+    fprintf(stream, "\n");
 }
 
 void cleanup(APInt *arr, size_t size)
@@ -50,13 +51,12 @@ int main(int argc, char const *argv[]) {
         fprintf(stderr, "Error: main failed; could not allocate sufficient memory for user input.\n");
         exit(1);
     }
-    memset(buffer, 0, MAX_LEN);
 
     fgets(buffer, MAX_LEN, input);
-    char *command = strtok(buffer, "\n");    // isolate monocommand
+    char *command = strtok(buffer, "\n");    // isolate monocommand (remove '\n')
 
-    size_t arrSize = atoll(command);
-    APInt *apint_arr = (APInt*)calloc(arrSize, sizeof(APInt*));
+    u_int64_t arrSize = atoll(command);
+    APInt *apint_arr = (APInt*)calloc(arrSize, sizeof(APInt));
     if (apint_arr == NULL)  // error check
     {
         fprintf(stderr, "Error: main failed; could not allocate sufficient memory for APInts.\n");
@@ -66,13 +66,11 @@ int main(int argc, char const *argv[]) {
     // Creation of APInt array
     for (int i = 0; i < arrSize; i++)
     {
-        memset(buffer, 0, MAX_LEN);
         fgets(buffer, MAX_LEN, input);
         command = strtok(buffer, "\n");
 
         if (!strcmp(command, "UINT64"))
         {
-            memset(buffer, 0, MAX_LEN);
             fgets(buffer, MAX_LEN, input);
             command = strtok(buffer, "\n");
 
@@ -81,7 +79,6 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "HEX_STRING"))
         {
-            memset(buffer, 0, MAX_LEN);
             fgets(buffer, MAX_LEN, input);
             command = strtok(buffer, "\n");
 
@@ -89,10 +86,9 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "CLONE"))
         {
-            memset(buffer, 0, MAX_LEN);
             fgets(buffer, MAX_LEN, input);
             command = strtok(buffer, "\n");
-            size_t k = atoll(command);
+            u_int64_t k = atoll(command);
 
             APIntClone(&apint_arr[k], &apint_arr[i]);
         }
@@ -106,7 +102,6 @@ int main(int argc, char const *argv[]) {
     int running = 1;
     while (running)
     {
-        memset(buffer, 0, MAX_LEN);
         fgets(buffer, MAX_LEN, input);
         command = strtok(buffer, "\n");
 
@@ -121,27 +116,116 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "SHL"))
         {
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [dst, src, k]
+            char *commands = strtok(command, " ");
 
+            // proper input assumed
+            u_int64_t dst = strtol(&commands[0], NULL, 10);
+            u_int64_t src = strtol(&commands[1], NULL, 10);
+            u_int64_t k = strtol(&commands[2], NULL, 10);
+
+            APInt srcCpy;
+            APIntClone(&apint_arr[src], &srcCpy);
+            for (int i = 0; i < k; i++)
+            {
+                APIntLShift(&srcCpy);
+            }
+            
+            free(apint_arr[dst].bytes);
+            APIntClone(&srcCpy, &apint_arr[dst]);
+            APIntDestroy(&srcCpy);
         }
         else if (!strcmp(command, "ADD"))
         {
-            
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [dst, op1, op2]
+            char *commands = strtok(command, " ");
+
+            // proper input assumed
+            u_int64_t dst = strtol(&commands[0], NULL, 10);
+            u_int64_t op1 = strtol(&commands[1], NULL, 10);
+            u_int64_t op2 = strtol(&commands[2], NULL, 10);
+
+            APInt sum;
+            APIntAdd(&apint_arr[op1], &apint_arr[op2], &sum);
+
+            free(apint_arr[dst].bytes);
+            APIntClone(&sum, &apint_arr[dst]);
+            APIntDestroy(&sum);
         }
         else if (!strcmp(command, "MUL_UINT64"))
         {
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [dst, src, k]
+            char *commands = strtok(command, " ");
+
+            // proper input assumed
+            u_int64_t dst = strtol(&commands[0], NULL, 10);
+            u_int64_t src = strtol(&commands[1], NULL, 10);
+            u_int64_t k = strtol(&commands[2], NULL, 10);
+
+            APInt product;
+            APInt64Mult(&apint_arr[src], k, &product);
             
+            free(apint_arr[dst].bytes);
+            APIntClone(&product, &apint_arr[dst]);
+            APIntDestroy(&product);
         }
         else if (!strcmp(command, "MUL_APINT"))
         {
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [dst, op1, op2]
+            char *commands = strtok(command, " ");
+
+            // proper input assumed
+            u_int64_t dst = strtol(&commands[0], NULL, 10);
+            u_int64_t op1 = strtol(&commands[1], NULL, 10);
+            u_int64_t op2 = strtol(&commands[2], NULL, 10);
+
+            APInt product;
+            APIntMult(&apint_arr[op1], &apint_arr[op2], &product);
             
+            free(apint_arr[dst].bytes);
+            APIntClone(&product, &apint_arr[dst]);
+            APIntDestroy(&product);
         }
         else if (!strcmp(command, "POW"))
         {
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [dst, src, k]
+            char *commands = strtok(command, " ");
+
+            // proper input assumed
+            u_int64_t dst = strtol(&commands[0], NULL, 10);
+            u_int64_t src = strtol(&commands[1], NULL, 10);
+            u_int64_t k = strtol(&commands[2], NULL, 10);
+
+            APInt power;
+            APIntPow(&apint_arr[src], k, &power);
             
+            free(apint_arr[dst].bytes);
+            APIntClone(&power, &apint_arr[dst]);
+            APIntDestroy(&power);
         }
         else if (!strcmp(command, "CMP"))
         {
-            
+            fgets(buffer, MAX_LEN, input);
+            command = strtok(buffer, "\n");
+            // [op1, op2]
+            char *commands = strtok(command, " ");
+
+            // proper input assumed
+            u_int64_t op1 = strtol(&commands[0], NULL, 10);
+            u_int64_t op2 = strtol(&commands[1], NULL, 10);
+
+            int result = APIntCompare(&apint_arr[op1], &apint_arr[op2]);
+            fprintf(output, "%d\n", result);
         }
         else
         {

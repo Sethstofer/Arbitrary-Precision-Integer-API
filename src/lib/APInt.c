@@ -70,13 +70,13 @@ void APIntHexToAPInt(char *hexStr, APInt *apint)
     }
 
     hexLen = strlen(hexStr);
-    apint->size = hexLen / 2;
+    apint->size = hexLen / MAXHEXS;
     apint->bytes = (u_int8_t*)calloc(apint->size, sizeof(u_int8_t));
 
     for (int i = 0; i < apint->size; i++)
     {
         // grab next two hex values (a byte worth) to place them into the APInt
-        char hexByte[2] = {hexStr[(hexLen - 1) - ((2*i)+1)], hexStr[(hexLen - 1) - (2*i)]};
+        char hexByte[2] = {hexStr[(hexLen - 1) - ((MAXHEXS*i)+1)], hexStr[(hexLen - 1) - (MAXHEXS*i)]};
         u_int8_t byte = (u_int8_t)strtol(hexByte, NULL, 16);
 
         apint->bytes[i] = byte;
@@ -92,9 +92,9 @@ void APIntHexToAPInt(char *hexStr, APInt *apint)
 
 void APIntClone(const APInt *apint, APInt *apint_clone)
 {
+    // prepare apint_clone for copying
     apint_clone->size = apint->size;
     apint_clone->bytes = (u_int8_t*)calloc(apint->size, sizeof(u_int8_t));
-
     if (apint_clone->bytes == NULL)  // error check
     {
         fprintf(stderr, "Error: Cloning failed; could not allocate sufficient memory.\n");
@@ -102,14 +102,8 @@ void APIntClone(const APInt *apint, APInt *apint_clone)
         exit(1);
     }
 
-    u_int8_t *ret = memmove(apint_clone->bytes, apint->bytes, apint_clone->size);
-    if (!ret)    // error check
-    {
-        fprintf(stderr, "Error: Cloning failed; could not allocate sufficient memory.\n");
-        free(apint->bytes);
-        free(apint_clone->bytes);
-        exit(1);
-    }
+    // copy contents of apint into apint_clone
+    memcpy(apint_clone->bytes, apint->bytes, apint->size);
 }
 
 u_int64_t APIntConvertTo64(APInt *apint)
@@ -137,14 +131,7 @@ void APIntConvertFrom64(u_int64_t int64, APInt *apint)
     }
 
     // copy contents of u_int64_t over to APInt of same size
-    // memcpy(apint->bytes, &int64, apint->size);
-    for (int i = 0; i < apint->size; i++)
-    {
-        // find byte to consider by shifting `int64`
-        u_int8_t currByte = (u_int8_t)(int64 >> (SHIFT * i));
-
-        apint->bytes[i] = currByte;
-    }
+    memcpy(apint->bytes, &int64, apint->size);
 
     // now empty bytes are removed from APInt to save space
     int zeroBytes = 0;
