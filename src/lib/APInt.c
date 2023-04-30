@@ -19,7 +19,8 @@ void APIntDestroy(APInt *apint)
 void APIntPrintAsHex(const APInt *apint, FILE *stream)
 {
     int strSize = sizeof(char) * MAXHEXS * apint->size;
-    char *decStr = (char*)malloc(strSize);
+    char *decStr = (char*)malloc(strSize + 1);
+    decStr[strSize] = 0;    // end string with null byte
     if (decStr == NULL)  // error check
     {
         fprintf(stderr, "Error: Print failed; could not allocate sufficient memory.\n");
@@ -76,7 +77,7 @@ void APIntHexToAPInt(char *hexStr, APInt *apint)
     for (int i = 0; i < apint->size; i++)
     {
         // grab next two hex values (a byte worth) to place them into the APInt
-        char hexByte[2] = {hexStr[(hexLen - 1) - ((MAXHEXS*i)+1)], hexStr[(hexLen - 1) - (MAXHEXS*i)]};
+        char hexByte[3] = {hexStr[(hexLen - 1) - ((MAXHEXS*i)+1)], hexStr[(hexLen - 1) - (MAXHEXS*i)], 0};
         u_int8_t byte = (u_int8_t)strtol(hexByte, NULL, 16);
 
         apint->bytes[i] = byte;
@@ -263,8 +264,7 @@ int APIntCompare(const APInt *apint_1, const APInt *apint_2)
         if (apint_2->bytes[i] > apint_1->bytes[i]) return -1;
     }
 
-    // must have been equivalent
-    return 0;
+    return 0;   // passing all checks implies equivalence
 }
 
 void APIntLShift(APInt *apint)

@@ -8,7 +8,7 @@
 // HELPER FUNCTIONS (for cleaner `main`)
 void dump(APInt *arr, const size_t size, FILE *stream)
 {
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         APIntPrintAsHex(&arr[i], stream);
     }
@@ -18,7 +18,7 @@ void dump(APInt *arr, const size_t size, FILE *stream)
 void cleanup(APInt *arr, size_t size)
 {
     // free heap data from each APInt
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         APIntDestroy(&arr[i]);
     }
@@ -64,7 +64,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // Creation of APInt array
-    for (int i = 0; i < arrSize; i++)
+    for (u_int64_t i = 0; i < arrSize; i++)
     {
         fgets(buffer, MAX_LEN, input);
         command = strtok(buffer, "\n");
@@ -117,7 +117,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "SHL"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
@@ -127,7 +126,7 @@ int main(int argc, char const *argv[]) {
 
             APInt srcCpy;
             APIntClone(&apint_arr[src], &srcCpy);
-            for (int i = 0; i < k; i++)
+            for (u_int64_t i = 0; i < k; i++)
             {
                 APIntLShift(&srcCpy);
             }
@@ -139,7 +138,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "ADD"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("dst op1 op2")
@@ -157,7 +155,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "MUL_UINT64"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
@@ -175,7 +172,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "MUL_APINT"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("dst op1 op2")
@@ -193,7 +189,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "POW"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
@@ -211,7 +206,6 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "CMP"))
         {
             fgets(buffer, MAX_LEN, input);
-            char *command;
             char *rest = buffer;
 
             // proper input assumed ("op1 op2")
