@@ -117,14 +117,13 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "SHL"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [dst, src, k]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t dst = strtol(&commands[0], NULL, 10);
-            u_int64_t src = strtol(&commands[1], NULL, 10);
-            u_int64_t k = strtol(&commands[2], NULL, 10);
+            // proper input assumed ("dst src k")
+            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt srcCpy;
             APIntClone(&apint_arr[src], &srcCpy);
@@ -140,14 +139,13 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "ADD"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [dst, op1, op2]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t dst = strtol(&commands[0], NULL, 10);
-            u_int64_t op1 = strtol(&commands[1], NULL, 10);
-            u_int64_t op2 = strtol(&commands[2], NULL, 10);
+            // proper input assumed ("dst op1 op2")
+            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt sum;
             APIntAdd(&apint_arr[op1], &apint_arr[op2], &sum);
@@ -159,14 +157,13 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "MUL_UINT64"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [dst, src, k]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t dst = strtol(&commands[0], NULL, 10);
-            u_int64_t src = strtol(&commands[1], NULL, 10);
-            u_int64_t k = strtol(&commands[2], NULL, 10);
+            // proper input assumed ("dst src k")
+            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt product;
             APInt64Mult(&apint_arr[src], k, &product);
@@ -178,14 +175,13 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "MUL_APINT"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [dst, op1, op2]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t dst = strtol(&commands[0], NULL, 10);
-            u_int64_t op1 = strtol(&commands[1], NULL, 10);
-            u_int64_t op2 = strtol(&commands[2], NULL, 10);
+            // proper input assumed ("dst op1 op2")
+            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt product;
             APIntMult(&apint_arr[op1], &apint_arr[op2], &product);
@@ -197,14 +193,13 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "POW"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [dst, src, k]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t dst = strtol(&commands[0], NULL, 10);
-            u_int64_t src = strtol(&commands[1], NULL, 10);
-            u_int64_t k = strtol(&commands[2], NULL, 10);
+            // proper input assumed ("dst src k")
+            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt power;
             APIntPow(&apint_arr[src], k, &power);
@@ -216,13 +211,12 @@ int main(int argc, char const *argv[]) {
         else if (!strcmp(command, "CMP"))
         {
             fgets(buffer, MAX_LEN, input);
-            command = strtok(buffer, "\n");
-            // [op1, op2]
-            char *commands = strtok(command, " ");
+            char *command;
+            char *rest = buffer;
 
-            // proper input assumed
-            u_int64_t op1 = strtol(&commands[0], NULL, 10);
-            u_int64_t op2 = strtol(&commands[1], NULL, 10);
+            // proper input assumed ("op1 op2")
+            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
 
             int result = APIntCompare(&apint_arr[op1], &apint_arr[op2]);
             fprintf(output, "%d\n", result);
