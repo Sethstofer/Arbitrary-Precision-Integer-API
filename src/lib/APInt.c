@@ -4,12 +4,9 @@
 #include <string.h>
 
 /* Your code to define APInt here. */
-#include <math.h>
 
 // maximum number of HEX integers we will fill in a u_int8_t; if u_int16_t, would be 4
 #define MAXHEXS 2
-// using u_int8_t means shift of 8 bits for every next byte
-#define SHIFT 8
 
 void APIntDestroy(APInt *apint)
 {
@@ -110,12 +107,9 @@ void APIntClone(const APInt *apint, APInt *apint_clone)
 u_int64_t APIntConvertTo64(APInt *apint)
 {
     u_int64_t value64 = 0;
-    int iter = (sizeof(u_int64_t) >= apint->size) ? apint->size : sizeof(u_int64_t);
 
-    for (int i = 0; i < iter; i++)
-    {
-        value64 += apint->bytes[i] * pow(2, SHIFT * i);
-    }
+    // copy contents of APInt over to u_int64_t
+    memcpy(&value64, apint->bytes, apint->size);
 
     return value64;
 }
