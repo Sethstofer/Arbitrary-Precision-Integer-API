@@ -2,3 +2,6 @@
 .DS_Store
 build_debug
 build
+input/selfTest_badArr.txt
+input/selfTest_bigPow.txt
+input/selfTest_longhex.txt

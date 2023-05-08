@@ -45,56 +45,94 @@ int main(int argc, char const *argv[]) {
 
     /* Your code to init APInt array, and operate on them here. */
 
-    char *buffer = (char*)malloc(MAX_LEN);
+    size_t buffLen = MAX_LEN;
+    char *buffer = (char*)malloc(buffLen);
     if (buffer == NULL)  // error check
     {
         fprintf(stderr, "Error: main failed; could not allocate sufficient memory for user input.\n");
-        exit(1);
+        exit(0);
     }
 
-    fgets(buffer, MAX_LEN, input);
+    ssize_t ret = getline(&buffer, &buffLen, input);
+    if (ret == -1)
+    {
+        fprintf(stderr, "Error: main failed; could not collect command line.\n");
+        exit(0);
+    }
     char *command = strtok(buffer, "\n");    // isolate monocommand (remove '\n')
 
-    u_int64_t arrSize = atoll(command);
+    u_int64_t arrSize = strtoull(command, NULL, 10);
+    if (arrSize == 0)   // invalid command
+    {
+        free(buffer);
+        exit(0);
+    }
+
     APInt *apint_arr = (APInt*)calloc(arrSize, sizeof(APInt));
     if (apint_arr == NULL)  // error check
     {
         fprintf(stderr, "Error: main failed; could not allocate sufficient memory for APInts.\n");
-        exit(1);
+        exit(0);
     }
 
     // Creation of APInt array
     for (u_int64_t i = 0; i < arrSize; i++)
     {
-        fgets(buffer, MAX_LEN, input);
+        ret = getline(&buffer, &buffLen, input);
+        if (ret == -1)
+        {
+            fprintf(stderr, "Error: main failed; could not collect command line.\n");
+            exit(0);
+        }
         command = strtok(buffer, "\n");
 
         if (!strcmp(command, "UINT64"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             command = strtok(buffer, "\n");
 
-            uint64_t int64 = atoll(command);
+            uint64_t int64 = strtoull(command, NULL, 10);
             APIntConvertFrom64(int64, &apint_arr[i]);
         }
         else if (!strcmp(command, "HEX_STRING"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             command = strtok(buffer, "\n");
 
             APIntHexToAPInt(command, &apint_arr[i]);
         }
         else if (!strcmp(command, "CLONE"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             command = strtok(buffer, "\n");
-            u_int64_t k = atoll(command);
+            u_int64_t k = strtoull(command, NULL, 10);
 
             APIntClone(&apint_arr[k], &apint_arr[i]);
         }
-        else
+        else    // invalid command
         {
-            exit(1);    // invalid command
+            // cleanup program and exit
+            free(buffer);
+            if (i == 0)
+                free(apint_arr);
+            else
+                cleanup(apint_arr, i);
+            exit(0);
         }
     }
 
@@ -102,7 +140,12 @@ int main(int argc, char const *argv[]) {
     int running = 1;
     while (running)
     {
-        fgets(buffer, MAX_LEN, input);
+        ret = getline(&buffer, &buffLen, input);
+        if (ret == -1)
+        {
+            fprintf(stderr, "Error: main failed; could not collect command line.\n");
+            exit(0);
+        }
         command = strtok(buffer, "\n");
 
         if (!strcmp(command, "DUMP"))
@@ -116,13 +159,18 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "SHL"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
-            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t dst = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt srcCpy;
             APIntClone(&apint_arr[src], &srcCpy);
@@ -137,13 +185,18 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "ADD"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("dst op1 op2")
-            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t dst = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op1 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt sum;
             APIntAdd(&apint_arr[op1], &apint_arr[op2], &sum);
@@ -154,13 +207,18 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "MUL_UINT64"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
-            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t dst = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt product;
             APInt64Mult(&apint_arr[src], k, &product);
@@ -171,13 +229,18 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "MUL_APINT"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("dst op1 op2")
-            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t dst = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op1 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt product;
             APIntMult(&apint_arr[op1], &apint_arr[op2], &product);
@@ -188,13 +251,18 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "POW"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("dst src k")
-            u_int64_t dst = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t src = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t k = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t dst = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t src = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t k = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             APInt power;
             APIntPow(&apint_arr[src], k, &power);
@@ -205,21 +273,32 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "CMP"))
         {
-            fgets(buffer, MAX_LEN, input);
+            ret = getline(&buffer, &buffLen, input);
+            if (ret == -1)
+            {
+                fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                exit(0);
+            }
             char *rest = buffer;
 
             // proper input assumed ("op1 op2")
-            u_int64_t op1 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
-            u_int64_t op2 = strtoll(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op1 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
+            u_int64_t op2 = strtoull(strtok_r(rest, " ", &rest), NULL, 10);
 
             int result = APIntCompare(&apint_arr[op1], &apint_arr[op2]);
             fprintf(output, "%d\n", result);
         }
-        else
+        else    // invalid command
         {
-            exit(1);    // invalid command
+            // cleanup program and exit
+            free(buffer);
+            cleanup(apint_arr, arrSize);
+            exit(0);
         }
     }
+
+    // cleanup user input
+    free(buffer);
 
     // Close the files we opened.
     if (outputGiven)

@@ -15,19 +15,18 @@ void APIntDestroy(APInt *apint)
 
 void APIntPrintAsHex(const APInt *apint, FILE *stream)
 {
-    int strSize = sizeof(char) * MAXHEXS * apint->size;
+    u_int64_t strSize = sizeof(char) * MAXHEXS * apint->size;
     char *decStr = (char*)malloc(strSize + 1);
-    decStr[strSize] = 0;    // end string with null byte
     if (decStr == NULL)  // error check
     {
         fprintf(stderr, "Error: Print failed; could not allocate sufficient memory.\n");
         free(apint->bytes);
         exit(1);
     }
-    memset(decStr, 0, strSize);
+    memset(decStr, 0, strSize + 1);     // set all zeroes and end string with null byte
 
     int currStrOffset = strSize-1;
-    for (int i = 0; i < apint->size; i++)
+    for (u_int16_t i = 0; i < apint->size; i++)
     {
         u_int8_t currByte = apint->bytes[i];     // original byte
         u_int8_t currHex = currByte % 16;        // take hex components one at a time
@@ -49,7 +48,7 @@ void APIntPrintAsHex(const APInt *apint, FILE *stream)
 
 void APIntHexToAPInt(char *hexStr, APInt *apint)
 {
-    int hexLen = strlen(hexStr);
+    u_int64_t hexLen = strlen(hexStr);
 
     // handle hexStr of odd size
     int overwritten = 0;
@@ -68,14 +67,20 @@ void APIntHexToAPInt(char *hexStr, APInt *apint)
     }
 
     hexLen = strlen(hexStr);
-    apint->size = hexLen / MAXHEXS;
+    apint->size = (u_int16_t)(hexLen / MAXHEXS);
     apint->bytes = (u_int8_t*)calloc(apint->size, sizeof(u_int8_t));
+    if (apint->bytes == NULL)  // error check
+    {
+        fprintf(stderr, "Error: Hex to number failed; could not allocate sufficient memory.\n");
+        free(apint->bytes);
+        exit(1);
+    }
 
-    for (int i = 0; i < apint->size; i++)
+    for (u_int16_t i = 0; i < apint->size; i++)
     {
         // grab next two hex values (a byte worth) to place them into the APInt
         char hexByte[3] = {hexStr[(hexLen - 1) - ((MAXHEXS*i)+1)], hexStr[(hexLen - 1) - (MAXHEXS*i)], 0};
-        u_int8_t byte = (u_int8_t)strtol(hexByte, NULL, 16);
+        u_int8_t byte = (u_int8_t)strtoul(hexByte, NULL, 16);
 
         apint->bytes[i] = byte;
     }
@@ -118,7 +123,7 @@ void APIntConvertFrom64(u_int64_t int64, APInt *apint)
 {
     // simple u_int64_t size conversion
     apint->size = sizeof(u_int64_t);
-    apint->bytes = (u_int8_t*)malloc(sizeof(u_int64_t));
+    apint->bytes = (u_int8_t*)calloc(apint->size, sizeof(u_int8_t));
     if (apint->bytes == NULL)   // error check
     {
         fprintf(stderr, "Error: Conversion failed; could not allocate sufficient memory.\n");
@@ -284,7 +289,8 @@ void APIntLShift(APInt *apint)
         apint_LShift->bytes[i] = (u_int8_t)doubleByte;
 
         // determine carry
-        carry = ((u_int16_t)doubleByte > (u_int8_t)doubleByte) ? 1 : 0;
+        u_int8_t byte = (u_int8_t)doubleByte;
+        carry = ((u_int16_t)doubleByte > (u_int16_t)byte) ? 1 : 0;
     }
 
     // reallocation if carry at final LShift; need to extend bytes' length
@@ -372,7 +378,6 @@ void APIntMult(const APInt *apint_a, const APInt *apint_b, APInt *apint_product)
     APIntClone(apint_b, apint_2);
 
     // allocate APInt bytes for product
-    //apint_product->size = apint_1->size + apint_2->size;
     apint_product->size = 1;
     apint_product->bytes = (u_int8_t*)calloc(apint_product->size, sizeof(u_int8_t));
     if (apint_product->bytes == NULL)  // error check
@@ -447,7 +452,7 @@ void APInt64Mult(const APInt *apint, const u_int64_t int64, APInt *apint_product
     APIntDestroy(&apint_from64);
 }
 
-void APIntPow(APInt *apint, int exponent, APInt *apint_product)
+void APIntPow(APInt *apint, u_int64_t exponent, APInt *apint_product)
 {
     // handle power 0
     if (exponent == 0)
@@ -464,25 +469,51 @@ void APIntPow(APInt *apint, int exponent, APInt *apint_product)
         return;
     }
 
-    // create intermediate product
-    APInt apint_interProduct;
-    apint_interProduct.size = 1;
-    apint_interProduct.bytes = (u_int8_t*)malloc(sizeof(u_int8_t));
-    if (apint_interProduct.bytes == NULL)   // error check
+    // create intermediate result apint
+    APInt apint_interRes;
+    apint_interRes.size = 1;
+    apint_interRes.bytes = (u_int8_t*)malloc(sizeof(u_int8_t));
+    if (apint_interRes.bytes == NULL)   // error check
     {
         fprintf(stderr, "Error: Power failed; could not allocate sufficient memory.\n");
         free(apint->bytes);
         exit(1);
     }
-    apint_interProduct.bytes[0] = 1;
+    apint_interRes.bytes[0] = 1;
 
-    // main power loop
-    for (int i = 0; i < exponent; i++)
+    // main power loop; treating this as pow(x, n) with exponentiation by squaring
+    APInt apint_x;
+    APIntClone(apint, &apint_x);
+    u_int64_t n = exponent;
+    while (n >= 1)
     {
-        APIntMult(apint, &apint_interProduct, apint_product);
-        APIntClone(apint_product, &apint_interProduct);
+        APInt result, apint_xCpy1, apint_xCpy2;
+        if (n % 2 == 1)     // if n is odd
+        {
+            // result = result * x;
+            APIntMult(&apint_interRes, &apint_x, &result);
+            free(apint_interRes.bytes);
+            APIntClone(&result, &apint_interRes);
+            // cleanup
+            APIntDestroy(&result);
+        }
+
+        // x = x * x;
+        APIntClone(&apint_x, &apint_xCpy1);
+        APIntClone(&apint_x, &apint_xCpy2);
+        free(apint_x.bytes);
+        APIntMult(&apint_xCpy1, &apint_xCpy2, &apint_x);
+
+        n = n / 2;
+
+        // cleanup
+        APIntDestroy(&apint_xCpy1);
+        APIntDestroy(&apint_xCpy2);
     }
+    APIntClone(&apint_interRes, apint_product);
+
 
     // cleanup
-    APIntDestroy(&apint_interProduct);
+    APIntDestroy(&apint_interRes);
+    APIntDestroy(&apint_x);
 }

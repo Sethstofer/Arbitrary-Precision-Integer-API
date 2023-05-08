@@ -45,7 +45,7 @@ void APIntMult(const APInt*, const APInt*, APInt*);
 void APInt64Mult(const APInt*, const u_int64_t, APInt*);
 
 // Exponentiate APInt by integer argument; place result into third argument.
-void APIntPow(APInt*, int, APInt*);
+void APIntPow(APInt*, u_int64_t, APInt*);
 
 
 // ### BIT LOGIC
