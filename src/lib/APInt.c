@@ -362,10 +362,9 @@ void APIntRShift(APInt *apint)
     }
 
     // point `apint->bytes` to `apint_RShift->bytes` and free old pointer's memory
-    u_int8_t *temp = apint->bytes;
     apint->size = remainingBytes;
+    free(apint->bytes);
     apint->bytes = apint_RShift->bytes;
-    free(temp);
 }
 
 void APIntMult(const APInt *apint_a, const APInt *apint_b, APInt *apint_product)
@@ -404,6 +403,9 @@ void APIntMult(const APInt *apint_a, const APInt *apint_b, APInt *apint_product)
             // redefine the product as the next iteration of sum
             free(apint_product->bytes); // prep for malloc in `APIntClone`
             APIntClone(&apint_currSum, apint_product);
+
+            // reset apint_currSum; will be freed by while exit
+            free(apint_currSum.bytes);
         }
 
         // Left shift apint_1 and Right shift apint_2
@@ -436,7 +438,6 @@ void APIntMult(const APInt *apint_a, const APInt *apint_b, APInt *apint_product)
     // cleanup temporary data
     APIntDestroy(apint_1);
     APIntDestroy(apint_2);
-    APIntDestroy(&apint_currSum);
 }
 
 void APInt64Mult(const APInt *apint, const u_int64_t int64, APInt *apint_product)

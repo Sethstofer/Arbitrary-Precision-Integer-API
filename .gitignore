@@ -5,3 +5,4 @@ build
 input/selfTest_badArr.txt
 input/selfTest_bigPow.txt
 input/selfTest_longhex.txt
+input/selfTest_mult.txt

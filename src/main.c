@@ -57,12 +57,13 @@ int main(int argc, char const *argv[]) {
     if (ret == -1)
     {
         fprintf(stderr, "Error: main failed; could not collect command line.\n");
+        free(buffer);
         exit(0);
     }
     char *command = strtok(buffer, "\n");    // isolate monocommand (remove '\n')
 
     u_int64_t arrSize = strtoull(command, NULL, 10);
-    if (arrSize == 0)   // invalid command
+    if (arrSize == 0 || arrSize >= 10000)   // invalid command
     {
         free(buffer);
         exit(0);
@@ -72,6 +73,7 @@ int main(int argc, char const *argv[]) {
     if (apint_arr == NULL)  // error check
     {
         fprintf(stderr, "Error: main failed; could not allocate sufficient memory for APInts.\n");
+        free(buffer);
         exit(0);
     }
 
@@ -82,6 +84,11 @@ int main(int argc, char const *argv[]) {
         if (ret == -1)
         {
             fprintf(stderr, "Error: main failed; could not collect command line.\n");
+            free(buffer);
+            if (i == 0)
+                free(apint_arr);
+            else
+                cleanup(apint_arr, i);
             exit(0);
         }
         command = strtok(buffer, "\n");
@@ -92,6 +99,11 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                if (i == 0)
+                    free(apint_arr);
+                else
+                    cleanup(apint_arr, i);
                 exit(0);
             }
             command = strtok(buffer, "\n");
@@ -105,6 +117,11 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                if (i == 0)
+                    free(apint_arr);
+                else
+                    cleanup(apint_arr, i);
                 exit(0);
             }
             command = strtok(buffer, "\n");
@@ -117,6 +134,11 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                if (i == 0)
+                    free(apint_arr);
+                else
+                    cleanup(apint_arr, i);
                 exit(0);
             }
             command = strtok(buffer, "\n");
@@ -144,6 +166,8 @@ int main(int argc, char const *argv[]) {
         if (ret == -1)
         {
             fprintf(stderr, "Error: main failed; could not collect command line.\n");
+            free(buffer);
+            cleanup(apint_arr, arrSize);
             exit(0);
         }
         command = strtok(buffer, "\n");
@@ -154,7 +178,6 @@ int main(int argc, char const *argv[]) {
         }
         else if (!strcmp(command, "END"))
         {
-            cleanup(apint_arr, arrSize);        // clean up memory space
             running = 0;                        // for program exit
         }
         else if (!strcmp(command, "SHL"))
@@ -163,6 +186,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -189,6 +214,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -211,6 +238,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -233,6 +262,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -255,6 +286,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -277,6 +310,8 @@ int main(int argc, char const *argv[]) {
             if (ret == -1)
             {
                 fprintf(stderr, "Error: main failed; could not collect command line.\n");
+                free(buffer);
+                cleanup(apint_arr, arrSize);
                 exit(0);
             }
             char *rest = buffer;
@@ -299,6 +334,8 @@ int main(int argc, char const *argv[]) {
 
     // cleanup user input
     free(buffer);
+    // clean up memory space
+    cleanup(apint_arr, arrSize);
 
     // Close the files we opened.
     if (outputGiven)
